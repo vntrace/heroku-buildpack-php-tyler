@@ -24,8 +24,21 @@ cp -f daemon/newrelic-daemon.x64 $installdir/bin/newrelic-daemon
 cp -f scripts/newrelic.cfg.template $installdir/etc/newrelic.cfg
 sed -i -e 's|var|app/local/var|g' $installdir/etc/newrelic.cfg
 sed -i -e 's|#ssl=false|ssl=true|g' $installdir/etc/newrelic.cfg
-curl -L "https://raw.github.com/gist/2767604/newrelic-license.sh" -o $installdir/bin/newrelic-license
+sed -i -e 's|#pidfile=|pidfile=|g' $installdir/etc/newrelic.cfg
+sed -i -e 's|#logfile=|logfile=|g' $installdir/etc/newrelic.cfg
+#curl -L "https://raw.github.com/gist/2767604/newrelic-license.sh" -o $installdir/bin/newrelic-license
+cat > $installdir/bin/newrelic-license <<EOF
+#!/usr/bin/env bash
+
+if [ -f /app/local/NEWRELIC_VERSION ]; then
+	sed -i "s|REPLACE_WITH_REAL_KEY|${NEW_RELIC_LICENSE_KEY}|g" /app/vendor/php/etc.d/*newrelic*.ini
+else
+	sed -i "s|REPLACE_WITH_REAL_KEY|${NEW_RELIC_LICENSE_KEY}|g" /app/local/etc/newrelic.cfg
+fi
+EOF
+
 chmod +x $installdir/bin/newrelic-license
+echo "${NEWRELIC_VERSION}" > $installdir/NEWRELIC_VERSION
 popd
 
 pushd $installdir
